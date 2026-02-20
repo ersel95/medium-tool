@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "medium-tool"
+version = "0.1.0"
+description = "Analyze code projects and generate Medium articles with AI"
+requires-python = ">=3.10"
+dependencies = [
+    "click>=8.1",
+    "openai>=1.50",
+    "requests>=2.31",
+    "python-dotenv>=1.0",
+    "rich>=13.0",
+    "pathspec>=0.12",
+    "fastapi>=0.104",
+    "uvicorn>=0.24",
+    "sse-starlette>=1.8",
+]
+
+[project.scripts]
+medium-tool = "medium_tool.cli:cli"
+
+[tool.setuptools.packages.find]
+where = ["src"]
