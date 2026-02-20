@@ -28,6 +28,7 @@ const TONE_LABELS: Record<string, string> = {
 
 export function SharePanel({ article, language }: SharePanelProps) {
   const [articleUrl, setArticleUrl] = useState("");
+  const [postLanguage, setPostLanguage] = useState(language);
   const [loading, setLoading] = useState(false);
   const [posts, setPosts] = useState<SocialPosts | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
@@ -43,7 +44,7 @@ export function SharePanel({ article, language }: SharePanelProps) {
         subtitle: article.subtitle,
         markdown: article.markdown,
         article_url: articleUrl.trim(),
-        language,
+        language: postLanguage,
       });
       setPosts(result.posts);
     } catch (err) {
@@ -67,6 +68,28 @@ export function SharePanel({ article, language }: SharePanelProps) {
         <p className="text-sm text-[var(--muted-foreground)]">
           Paste your published Medium article link to generate social media posts in different tones.
         </p>
+        <div>
+          <label className="block text-xs text-[var(--muted-foreground)] mb-1">
+            Post Language
+          </label>
+          <div className="flex rounded-lg border border-[var(--border)] overflow-hidden w-fit">
+            {["en", "tr"].map((lang) => (
+              <button
+                key={lang}
+                type="button"
+                onClick={() => setPostLanguage(lang)}
+                disabled={loading}
+                className={`px-4 py-1.5 text-sm font-medium transition-colors ${
+                  postLanguage === lang
+                    ? "bg-[var(--primary)] text-[var(--primary-foreground)]"
+                    : "bg-[var(--background)] text-[var(--foreground)] hover:bg-[var(--muted)]"
+                }`}
+              >
+                {lang.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="flex gap-2">
           <input
             type="url"
