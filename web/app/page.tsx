@@ -7,6 +7,7 @@ import { AnalysisView } from "@/components/AnalysisView";
 import { TopicSelector } from "@/components/TopicSelector";
 import { ArticleEditor } from "@/components/ArticleEditor";
 import { PublishPanel } from "@/components/PublishPanel";
+import { SharePanel } from "@/components/SharePanel";
 import { LoadingStep } from "@/components/LoadingStep";
 import { ArticleHistory } from "@/components/ArticleHistory";
 import {
@@ -25,6 +26,7 @@ const STEPS = [
   { label: "Topics" },
   { label: "Article" },
   { label: "Export" },
+  { label: "Share" },
 ];
 
 export default function Home() {
@@ -134,8 +136,12 @@ export default function Home() {
     [articleId]
   );
 
-  const handleGoToPublish = useCallback(() => {
+  const handleGoToExport = useCallback(() => {
     setCurrentStep(3);
+  }, []);
+
+  const handleGoToShare = useCallback(() => {
+    setCurrentStep(4);
   }, []);
 
   const handleSelectHistory = useCallback(async (id: string) => {
@@ -240,12 +246,19 @@ export default function Home() {
           article={article}
           language={language}
           onChange={handleArticleChange}
-          onNext={handleGoToPublish}
+          onNext={handleGoToExport}
         />
       )}
 
-      {/* Step 3: Publish */}
-      {currentStep === 3 && article && <PublishPanel article={article} />}
+      {/* Step 3: Export */}
+      {currentStep === 3 && article && (
+        <PublishPanel article={article} onNext={handleGoToShare} />
+      )}
+
+      {/* Step 4: Share */}
+      {currentStep === 4 && article && (
+        <SharePanel article={article} language={language} />
+      )}
     </main>
   );
 }

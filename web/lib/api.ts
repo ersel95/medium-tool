@@ -176,3 +176,26 @@ export function reviseArticle(data: {
 }): Promise<{ markdown: string }> {
   return post("/api/revise", data);
 }
+
+// ── Social Media Posts ──────────────────────────────
+
+export interface SocialPost {
+  tone: string;
+  text: string;
+}
+
+export interface SocialPosts {
+  twitter?: SocialPost[];
+  linkedin?: SocialPost[];
+  hackernews?: SocialPost[];
+}
+
+export function generateSocialPosts(data: {
+  title: string;
+  subtitle: string;
+  markdown: string;
+  article_url: string;
+  language: string;
+}): Promise<{ posts: SocialPosts }> {
+  return post("/api/social-posts", data);
+}

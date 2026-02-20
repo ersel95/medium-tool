@@ -6,9 +6,10 @@ import { saveArticle } from "@/lib/api";
 
 interface PublishPanelProps {
   article: ArticleData;
+  onNext?: () => void;
 }
 
-export function PublishPanel({ article }: PublishPanelProps) {
+export function PublishPanel({ article, onNext }: PublishPanelProps) {
   const [status, setStatus] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [savePath, setSavePath] = useState("");
@@ -122,6 +123,17 @@ export function PublishPanel({ article }: PublishPanelProps) {
         >
           {status}
         </div>
+      )}
+
+      {/* Next: Share */}
+      {onNext && (
+        <button
+          type="button"
+          onClick={onNext}
+          className="w-full rounded-lg bg-[var(--primary)] px-6 py-3 text-sm font-medium text-[var(--primary-foreground)] transition-opacity hover:opacity-90"
+        >
+          Continue to Share
+        </button>
       )}
     </div>
   );

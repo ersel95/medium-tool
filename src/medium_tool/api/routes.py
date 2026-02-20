@@ -69,6 +69,14 @@ class ArticleUpdateRequest(BaseModel):
     image_prompts: list[dict[str, str]] | None = None
 
 
+class SocialPostsRequest(BaseModel):
+    title: str
+    subtitle: str = ""
+    markdown: str
+    article_url: str
+    language: str = "en"
+
+
 # ── Helpers ─────────────────────────────────────────────
 
 
@@ -349,3 +357,25 @@ def revise(req: ReviseRequest):
         raise HTTPException(status_code=500, detail=f"Revision failed: {e}")
 
     return {"markdown": revised}
+
+
+# ── Social Media Posts ─────────────────────────────────
+
+
+@router.post("/social-posts")
+def social_posts(req: SocialPostsRequest):
+    """Generate social media sharing posts for a published article."""
+    from medium_tool.generator.social import generate_social_posts
+
+    try:
+        posts = generate_social_posts(
+            title=req.title,
+            subtitle=req.subtitle,
+            markdown=req.markdown,
+            article_url=req.article_url,
+            language=req.language,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Social post generation failed: {e}")
+
+    return {"posts": posts}
