@@ -16,11 +16,30 @@ Medium Tool scans your codebase, understands its structure, and uses Claude to w
 - **Medium Publishing** — Publish directly to Medium as a draft or public post (requires Medium API token).
 - **Multi-language** — Generate articles in English or Turkish.
 
+## Important: Claude Code CLI Required
+
+This tool runs **locally on your machine** and uses [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) to generate articles. Claude Code CLI must be installed and authenticated before you can use Medium Tool.
+
+**Without Claude Code CLI**, project analysis will work but all AI features (topic generation, article writing, title suggestions, revision) will fail with a clear error message.
+
+```bash
+# Install Claude Code CLI
+npm install -g @anthropic-ai/claude-code
+
+# Authenticate (opens browser)
+claude
+```
+
+Verify it works:
+```bash
+claude -p <<< "Say hello"
+```
+
 ## Prerequisites
 
+- **Claude Code CLI** — installed and authenticated (see above)
 - **Python 3.10+**
 - **Node.js 18+**
-- **Claude Code CLI** — installed and authenticated ([installation guide](https://docs.anthropic.com/en/docs/claude-code))
 - **Git** — required for analyzing GitHub repositories
 
 ## Quick Start
@@ -60,7 +79,7 @@ cp .env.example .env
 | `OPENAI_API_KEY` | For images | Generate images with DALL-E |
 | `UNSPLASH_ACCESS_KEY` | For images | Fetch stock photos from Unsplash |
 
-> Note: Article generation uses Claude Code CLI, not an API key. Make sure `claude` is available in your PATH.
+> These keys are optional. The core article generation only needs Claude Code CLI.
 
 ### 5. Start the servers
 
@@ -78,6 +97,8 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+> On startup, the backend checks for Claude Code CLI and logs a warning if it's not found. You can also check `GET /health` to verify.
 
 ## Usage
 
