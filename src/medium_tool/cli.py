@@ -11,7 +11,7 @@ from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 
-from medium_tool.config import load_config, validate_config
+from medium_tool.config import load_config
 from medium_tool.models import ImageStyle
 
 console = Console()
@@ -21,7 +21,6 @@ console = Console()
 @click.argument("path", type=click.Path(exists=True, file_okay=False, resolve_path=True))
 @click.option("--language", "-l", type=click.Choice(["en", "tr"]), default="en", help="Article language")
 @click.option("--topic-count", "-n", type=int, default=5, help="Number of topics to generate")
-@click.option("--publish", is_flag=True, default=False, help="Publish to Medium (default: draft)")
 @click.option("--image-style", type=click.Choice(["unsplash", "dalle", "both"]), default="both", help="Image source")
 @click.option("--topic-index", "-t", type=int, default=None, help="Select a topic by index (0-based)")
 @click.option("--output", "-o", type=click.Path(), default=None, help="Save article to file")
@@ -31,7 +30,6 @@ def cli(
     path: str,
     language: str,
     topic_count: int,
-    publish: bool,
     image_style: str,
     topic_index: int | None,
     output: str | None,
@@ -44,11 +42,6 @@ def cli(
 
     # ── Config ──────────────────────────────────────────────
     config = load_config()
-    errors = validate_config(config, need_publish=publish)
-    if errors:
-        for err in errors:
-            console.print(f"[red]✗[/red] {err}")
-        raise SystemExit(1)
 
     # ── Step 1: Analyze ────────────────────────────────────
     from medium_tool.analyzer.summarizer import analyze_project
@@ -143,15 +136,12 @@ def cli(
 
     article = finalize_article(article)
 
-    # ── Step 7: Output / Publish ───────────────────────────
+    # ── Step 7: Output ─────────────────────────────────────
     if output:
         out_path = Path(output)
         out_path.write_text(article.final_markdown, encoding="utf-8")
         console.print(f"\n[green]✓[/green] Article saved to [bold]{out_path}[/bold]")
-
-    if publish:
-        _publish_article(article, config)
-    elif not output:
+    else:
         # Show preview
         console.print(Panel(
             Markdown(article.final_markdown[:2000] + ("\n\n..." if len(article.final_markdown) > 2000 else "")),
@@ -160,38 +150,6 @@ def cli(
         ))
 
     console.print("\n[green]Done![/green]")
-
-
-def _publish_article(article, config):
-    """Upload images to Medium and create the post."""
-    from medium_tool.publisher.medium_client import MediumClient
-    from medium_tool.publisher.uploader import upload_dalle_images
-    from medium_tool.generator.formatter import finalize_article
-
-    client = MediumClient(config.medium_token)
-
-    # Upload DALL-E images to Medium first
-    dalle_images = [img for img in article.images if img.source == "dalle" and img.local_path]
-    if dalle_images:
-        with _spinner("Uploading images to Medium..."):
-            upload_dalle_images(article, client)
-            # Re-finalize after URL updates
-            article = finalize_article(article)
-
-    # Publish
-    publish_status = "draft"
-    with _spinner("Publishing to Medium..."):
-        result = client.create_post(
-            title=article.title,
-            content_markdown=article.final_markdown,
-            tags=article.tags,
-            publish_status=publish_status,
-        )
-
-    if result.success:
-        console.print(f"[green]✓[/green] Published as draft: [link={result.url}]{result.url}[/link]")
-    else:
-        console.print(f"[red]✗[/red] Publish failed: {result.error}")
 
 
 def _spinner(message: str):

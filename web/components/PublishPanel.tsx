@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { ArticleData } from "@/lib/api";
-import { publishArticle, saveArticle } from "@/lib/api";
+import { saveArticle } from "@/lib/api";
 
 interface PublishPanelProps {
   article: ArticleData;
@@ -11,7 +11,6 @@ interface PublishPanelProps {
 export function PublishPanel({ article }: PublishPanelProps) {
   const [status, setStatus] = useState<string>("");
   const [loading, setLoading] = useState(false);
-  const [resultUrl, setResultUrl] = useState<string>("");
   const [savePath, setSavePath] = useState("");
 
   const handleDownload = () => {
@@ -25,6 +24,11 @@ export function PublishPanel({ article }: PublishPanelProps) {
     setStatus("Downloaded!");
   };
 
+  const handleCopyMarkdown = () => {
+    navigator.clipboard.writeText(article.markdown);
+    setStatus("Copied to clipboard!");
+  };
+
   const handleSaveToServer = async () => {
     if (!savePath.trim()) return;
     setLoading(true);
@@ -36,31 +40,6 @@ export function PublishPanel({ article }: PublishPanelProps) {
     setLoading(false);
     if (result.success) {
       setStatus(`Saved to ${result.path}`);
-    } else {
-      setStatus(`Error: ${result.error}`);
-    }
-  };
-
-  const handlePublish = async (publishStatus: "draft" | "public") => {
-    setLoading(true);
-    setStatus(
-      publishStatus === "draft" ? "Publishing as draft..." : "Publishing..."
-    );
-    const result = await publishArticle({
-      markdown: article.markdown,
-      title: article.title,
-      subtitle: article.subtitle,
-      tags: article.tags,
-      publish_status: publishStatus,
-    });
-    setLoading(false);
-    if (result.success) {
-      setResultUrl(result.url || "");
-      setStatus(
-        publishStatus === "draft"
-          ? "Published as draft!"
-          : "Published!"
-      );
     } else {
       setStatus(`Error: ${result.error}`);
     }
@@ -91,17 +70,27 @@ export function PublishPanel({ article }: PublishPanelProps) {
         </p>
       </div>
 
-      {/* Save options */}
+      {/* Export options */}
       <div className="space-y-3">
-        <h4 className="text-sm font-medium">Save</h4>
-        <button
-          type="button"
-          onClick={handleDownload}
-          disabled={loading}
-          className="w-full rounded-lg border border-[var(--border)] px-6 py-3 text-sm font-medium transition-colors hover:bg-[var(--muted)] disabled:opacity-50"
-        >
-          Download as Markdown
-        </button>
+        <h4 className="text-sm font-medium">Export</h4>
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={handleDownload}
+            disabled={loading}
+            className="rounded-lg border border-[var(--border)] px-6 py-3 text-sm font-medium transition-colors hover:bg-[var(--muted)] disabled:opacity-50"
+          >
+            Download .md
+          </button>
+          <button
+            type="button"
+            onClick={handleCopyMarkdown}
+            disabled={loading}
+            className="rounded-lg border border-[var(--border)] px-6 py-3 text-sm font-medium transition-colors hover:bg-[var(--muted)] disabled:opacity-50"
+          >
+            Copy Markdown
+          </button>
+        </div>
 
         <div className="flex gap-2">
           <input
@@ -122,29 +111,6 @@ export function PublishPanel({ article }: PublishPanelProps) {
         </div>
       </div>
 
-      {/* Publish options */}
-      <div className="space-y-3">
-        <h4 className="text-sm font-medium">Publish to Medium</h4>
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            type="button"
-            onClick={() => handlePublish("draft")}
-            disabled={loading}
-            className="rounded-lg bg-[var(--primary)] px-6 py-3 text-sm font-medium text-[var(--primary-foreground)] transition-opacity hover:opacity-90 disabled:opacity-50"
-          >
-            Publish as Draft
-          </button>
-          <button
-            type="button"
-            onClick={() => handlePublish("public")}
-            disabled={loading}
-            className="rounded-lg border border-[var(--destructive)] px-6 py-3 text-sm font-medium text-[var(--destructive)] transition-colors hover:bg-[var(--destructive)] hover:text-white disabled:opacity-50"
-          >
-            Publish Live
-          </button>
-        </div>
-      </div>
-
       {/* Status */}
       {status && (
         <div
@@ -155,16 +121,6 @@ export function PublishPanel({ article }: PublishPanelProps) {
           }`}
         >
           {status}
-          {resultUrl && (
-            <a
-              href={resultUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block mt-1 underline"
-            >
-              {resultUrl}
-            </a>
-          )}
         </div>
       )}
     </div>

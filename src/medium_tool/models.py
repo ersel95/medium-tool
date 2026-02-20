@@ -123,9 +123,3 @@ class Article:
     final_markdown: str = ""  # markdown with images resolved
 
 
-@dataclass
-class PublishResult:
-    success: bool
-    url: str = ""
-    post_id: str = ""
-    error: str = ""

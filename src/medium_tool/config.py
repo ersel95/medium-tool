@@ -13,7 +13,6 @@ from dotenv import load_dotenv
 class Config:
     openai_api_key: str = ""
     unsplash_access_key: str = ""
-    medium_token: str = ""
 
     @property
     def has_openai(self) -> bool:
@@ -22,10 +21,6 @@ class Config:
     @property
     def has_unsplash(self) -> bool:
         return bool(self.unsplash_access_key)
-
-    @property
-    def has_medium(self) -> bool:
-        return bool(self.medium_token)
 
 
 def load_config(env_path: Path | None = None) -> Config:
@@ -38,13 +33,9 @@ def load_config(env_path: Path | None = None) -> Config:
     return Config(
         openai_api_key=os.getenv("OPENAI_API_KEY", "").strip(),
         unsplash_access_key=os.getenv("UNSPLASH_ACCESS_KEY", "").strip(),
-        medium_token=os.getenv("MEDIUM_TOKEN", "").strip(),
     )
 
 
-def validate_config(config: Config, need_publish: bool = False) -> list[str]:
+def validate_config(config: Config) -> list[str]:
     """Return list of missing key errors. Empty list means all good."""
-    errors = []
-    if need_publish and not config.has_medium:
-        errors.append("MEDIUM_TOKEN is required for publishing")
-    return errors
+    return []

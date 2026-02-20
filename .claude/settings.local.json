@@ -35,7 +35,10 @@
       "Bash(npx tsc:*)",
       "Bash(SESSION_ID=\"f3158385-78bb-422c-aebe-7368e2e3d953\")",
       "Bash(git init:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(gh repo create:*)",
+      "Bash(git push:*)"
     ]
   }
 }

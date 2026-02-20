@@ -19,7 +19,6 @@ from medium_tool.api.db import (
     save_article,
     update_article,
 )
-from medium_tool.config import load_config
 
 router = APIRouter(prefix="/api")
 
@@ -44,14 +43,6 @@ class WriteRequest(BaseModel):
     session_id: str
     topic_index: int
     language: str = "en"
-
-
-class PublishRequest(BaseModel):
-    markdown: str
-    title: str
-    subtitle: str = ""
-    tags: list[str] = []
-    publish_status: str = "draft"
 
 
 class SaveRequest(BaseModel):
@@ -271,30 +262,6 @@ def write(req: WriteRequest):
     )
 
     return {"article": article_dict, "article_id": article_id}
-
-
-@router.post("/publish")
-def publish(req: PublishRequest):
-    """Publish an article to Medium."""
-    config = load_config()
-    if not config.has_medium:
-        raise HTTPException(status_code=400, detail="MEDIUM_TOKEN not configured")
-
-    from medium_tool.publisher.medium_client import MediumClient
-
-    client = MediumClient(config.medium_token)
-
-    result = client.create_post(
-        title=req.title,
-        content_markdown=req.markdown,
-        tags=req.tags[:5],
-        publish_status=req.publish_status,
-    )
-
-    if result.success:
-        return {"success": True, "url": result.url, "post_id": result.post_id}
-    else:
-        raise HTTPException(status_code=500, detail=result.error)
 
 
 @router.post("/save")

@@ -24,7 +24,7 @@ const STEPS = [
   { label: "Project" },
   { label: "Topics" },
   { label: "Article" },
-  { label: "Publish" },
+  { label: "Export" },
 ];
 
 export default function Home() {

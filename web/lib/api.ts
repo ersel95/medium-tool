@@ -133,16 +133,6 @@ export function writeArticle(data: {
   return post("/api/write", data);
 }
 
-export function publishArticle(data: {
-  markdown: string;
-  title: string;
-  subtitle?: string;
-  tags?: string[];
-  publish_status?: string;
-}): Promise<{ success: boolean; url?: string; error?: string }> {
-  return post("/api/publish", data);
-}
-
 export function saveArticle(data: {
   markdown: string;
   output_path: string;

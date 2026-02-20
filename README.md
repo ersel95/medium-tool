@@ -13,7 +13,7 @@ Medium Tool scans your codebase, understands its structure, and uses Claude to w
 - **Chat Revision** — Revise your article through a chat interface. Ask for tone changes, section rewrites, or structural edits.
 - **Article History** — All generated articles are saved to a local SQLite database. Reopen and edit any previous article.
 - **Image Prompts** — AI-generated image descriptions ready to copy into DALL-E, Midjourney, or any image generator.
-- **Medium Publishing** — Publish directly to Medium as a draft or public post (requires Medium API token).
+- **Export** — Download as Markdown, copy to clipboard, or save to a local file. Paste directly into Medium's editor.
 - **Multi-language** — Generate articles in English or Turkish.
 
 ## Important: Claude Code CLI Required
@@ -75,9 +75,8 @@ cp .env.example .env
 
 | Key | Required | Purpose |
 |-----|----------|---------|
-| `MEDIUM_TOKEN` | For publishing | Publish articles directly to Medium |
-| `OPENAI_API_KEY` | For images | Generate images with DALL-E |
-| `UNSPLASH_ACCESS_KEY` | For images | Fetch stock photos from Unsplash |
+| `OPENAI_API_KEY` | Optional | Generate images with DALL-E |
+| `UNSPLASH_ACCESS_KEY` | Optional | Fetch stock photos from Unsplash |
 
 > These keys are optional. The core article generation only needs Claude Code CLI.
 
@@ -106,7 +105,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 2. **Pick a language** (EN/TR) and number of topics
 3. **Select a topic** from the AI-generated suggestions
 4. **Edit the article** — use the Markdown editor, suggest new titles, or revise via chat
-5. **Publish** to Medium or save as a local `.md` file
+5. **Export** — download as Markdown, copy to clipboard, or save to a file. Then paste into Medium.
 
 ## Project Structure
 
@@ -116,8 +115,7 @@ medium-tool/
 │   ├── api/                  # FastAPI routes, SQLite database
 │   ├── analyzer/             # Project scanning and analysis
 │   ├── generator/            # Claude-powered writing, titles, revision
-│   ├── images/               # DALL-E and Unsplash integration
-│   └── publisher/            # Medium API client
+│   └── images/               # DALL-E and Unsplash integration
 ├── web/                      # Next.js frontend
 │   ├── app/                  # Pages
 │   ├── components/           # UI components
