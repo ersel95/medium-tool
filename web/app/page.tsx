@@ -144,6 +144,19 @@ export default function Home() {
     setCurrentStep(4);
   }, []);
 
+  const handleStepClick = useCallback(
+    (step: number) => {
+      if (step < currentStep) {
+        setCurrentStep(step);
+      }
+    },
+    [currentStep]
+  );
+
+  const handleBackToTopics = useCallback(() => {
+    setCurrentStep(1);
+  }, []);
+
   const handleSelectHistory = useCallback(async (id: string) => {
     setLoading(true);
     setError("");
@@ -195,6 +208,7 @@ export default function Home() {
         steps={STEPS}
         currentStep={currentStep}
         loadingMessage={loading ? loadingMessage : undefined}
+        onStepClick={handleStepClick}
       />
 
       {error && (
@@ -247,6 +261,7 @@ export default function Home() {
           language={language}
           onChange={handleArticleChange}
           onNext={handleGoToExport}
+          onBack={topics.length > 0 ? handleBackToTopics : undefined}
         />
       )}
 

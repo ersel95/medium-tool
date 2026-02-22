@@ -167,6 +167,21 @@ export function suggestTitles(data: {
   return post("/api/titles", data);
 }
 
+// ── Tag Research ─────────────────────────────────────
+
+export interface TagSuggestion {
+  name: string;
+  reason: string;
+  traffic: "high" | "medium" | "low";
+}
+
+export function researchTags(data: {
+  markdown: string;
+  language: string;
+}): Promise<{ tags: TagSuggestion[] }> {
+  return post("/api/tags/research", data);
+}
+
 // ── Article Revision ─────────────────────────────────
 
 export function reviseArticle(data: {

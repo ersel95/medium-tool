@@ -69,6 +69,11 @@ class ArticleUpdateRequest(BaseModel):
     image_prompts: list[dict[str, str]] | None = None
 
 
+class TagsResearchRequest(BaseModel):
+    markdown: str
+    language: str = "en"
+
+
 class SocialPostsRequest(BaseModel):
     title: str
     subtitle: str = ""
@@ -172,7 +177,9 @@ def analyze(req: AnalyzeRequest):
             raise HTTPException(status_code=400, detail=f"Git clone failed: {e}")
         project_path = cloned_path
     else:
-        project_path = Path(req.path)
+        # Strip shell escape backslashes (e.g. "Jigle\ Live" -> "Jigle Live")
+        clean_path = req.path.replace("\\ ", " ")
+        project_path = Path(clean_path)
         if not project_path.is_dir():
             raise HTTPException(status_code=400, detail=f"Path is not a directory: {req.path}")
 
@@ -357,6 +364,22 @@ def revise(req: ReviseRequest):
         raise HTTPException(status_code=500, detail=f"Revision failed: {e}")
 
     return {"markdown": revised}
+
+
+# ── Tag Research ───────────────────────────────────────
+
+
+@router.post("/tags/research")
+def tags_research(req: TagsResearchRequest):
+    """Research popular Medium tags for an article."""
+    from medium_tool.generator.tags import generate_tag_suggestions
+
+    try:
+        suggestions = generate_tag_suggestions(req.markdown, language=req.language)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Tag research failed: {e}")
+
+    return {"tags": suggestions}
 
 
 # ── Social Media Posts ─────────────────────────────────

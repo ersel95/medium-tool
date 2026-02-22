@@ -2,9 +2,9 @@
 
 import { useState, useRef, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { Copy, Check, Sparkles, Send, Loader2 } from "lucide-react";
-import type { ArticleData } from "@/lib/api";
-import { suggestTitles, reviseArticle } from "@/lib/api";
+import { Copy, Check, Sparkles, Send, Loader2, ChevronLeft } from "lucide-react";
+import type { ArticleData, TagSuggestion } from "@/lib/api";
+import { suggestTitles, reviseArticle, researchTags } from "@/lib/api";
 
 const MDEditor = dynamic(() => import("@uiw/react-md-editor"), { ssr: false });
 
@@ -13,6 +13,7 @@ interface ArticleEditorProps {
   language: string;
   onChange: (article: ArticleData) => void;
   onNext: () => void;
+  onBack?: () => void;
 }
 
 interface ChatMessage {
@@ -20,7 +21,7 @@ interface ChatMessage {
   content: string;
 }
 
-export function ArticleEditor({ article, language, onChange, onNext }: ArticleEditorProps) {
+export function ArticleEditor({ article, language, onChange, onNext, onBack }: ArticleEditorProps) {
   const [activeTab, setActiveTab] = useState<"edit" | "preview">("edit");
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
 
@@ -28,6 +29,11 @@ export function ArticleEditor({ article, language, onChange, onNext }: ArticleEd
   const [titleLoading, setTitleLoading] = useState(false);
   const [titleSuggestions, setTitleSuggestions] = useState<string[]>([]);
   const [showTitleDropdown, setShowTitleDropdown] = useState(false);
+
+  // Tag research
+  const [tagLoading, setTagLoading] = useState(false);
+  const [tagSuggestions, setTagSuggestions] = useState<TagSuggestion[]>([]);
+  const [showTagPanel, setShowTagPanel] = useState(false);
 
   // Chat revision
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -68,6 +74,25 @@ export function ArticleEditor({ article, language, onChange, onNext }: ArticleEd
   const handleSelectTitle = (title: string) => {
     updateField("title", title);
     setShowTitleDropdown(false);
+  };
+
+  const handleResearchTags = async () => {
+    setTagLoading(true);
+    try {
+      const result = await researchTags({ markdown: article.markdown, language });
+      setTagSuggestions(result.tags);
+      setShowTagPanel(true);
+    } catch {
+      // silently fail
+    } finally {
+      setTagLoading(false);
+    }
+  };
+
+  const handleAddTag = (tagName: string) => {
+    if (!article.tags.includes(tagName)) {
+      updateField("tags", [...article.tags, tagName]);
+    }
   };
 
   const handleRevise = async () => {
@@ -168,17 +193,90 @@ export function ArticleEditor({ article, language, onChange, onNext }: ArticleEd
           <label className="block text-xs text-[var(--muted-foreground)] mb-1">
             Tags (comma-separated)
           </label>
-          <input
-            type="text"
-            value={article.tags.join(", ")}
-            onChange={(e) =>
-              updateField(
-                "tags",
-                e.target.value.split(",").map((t) => t.trim()).filter(Boolean)
-              )
-            }
-            className="w-full rounded border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
-          />
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={article.tags.join(", ")}
+              onChange={(e) =>
+                updateField(
+                  "tags",
+                  e.target.value.split(",").map((t) => t.trim()).filter(Boolean)
+                )
+              }
+              className="flex-1 rounded border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
+            />
+            <button
+              type="button"
+              onClick={handleResearchTags}
+              disabled={tagLoading}
+              className="shrink-0 flex items-center gap-1.5 rounded border border-[var(--border)] bg-[var(--background)] px-3 py-2 text-xs font-medium hover:bg-[var(--muted)] transition-colors disabled:opacity-50"
+              title="Research popular tags"
+            >
+              {tagLoading ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Sparkles className="h-3.5 w-3.5" />
+              )}
+              Research
+            </button>
+          </div>
+          {showTagPanel && tagSuggestions.length > 0 && (
+            <div className="mt-2 rounded-lg border border-[var(--border)] bg-[var(--background)] shadow-lg overflow-hidden">
+              <div className="px-3 py-2 bg-[var(--muted)] border-b border-[var(--border)]">
+                <h4 className="text-xs font-medium text-[var(--muted-foreground)]">
+                  Tag Suggestions
+                </h4>
+              </div>
+              <div className="max-h-64 overflow-y-auto divide-y divide-[var(--border)]">
+                {tagSuggestions.map((tag, i) => {
+                  const exists = article.tags.includes(tag.name);
+                  return (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => handleAddTag(tag.name)}
+                      disabled={exists}
+                      className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+                        exists
+                          ? "opacity-50 cursor-default bg-[var(--muted)]"
+                          : "hover:bg-[var(--muted)] cursor-pointer"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{tag.name}</span>
+                        <span
+                          className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium leading-none ${
+                            tag.traffic === "high"
+                              ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                              : tag.traffic === "medium"
+                              ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                              : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+                          }`}
+                        >
+                          {tag.traffic}
+                        </span>
+                        {exists && (
+                          <span className="text-[10px] text-[var(--muted-foreground)]">
+                            added
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-[var(--muted-foreground)] mt-0.5">
+                        {tag.reason}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowTagPanel(false)}
+                className="w-full text-center px-3 py-1.5 text-xs text-[var(--muted-foreground)] hover:bg-[var(--muted)] border-t border-[var(--border)]"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -322,14 +420,26 @@ export function ArticleEditor({ article, language, onChange, onNext }: ArticleEd
         </div>
       </div>
 
-      {/* Next button */}
-      <button
-        type="button"
-        onClick={onNext}
-        className="w-full rounded-lg bg-[var(--primary)] px-6 py-3 text-sm font-medium text-[var(--primary-foreground)] transition-opacity hover:opacity-90"
-      >
-        Continue to Publish
-      </button>
+      {/* Navigation buttons */}
+      <div className="flex gap-3">
+        {onBack && (
+          <button
+            type="button"
+            onClick={onBack}
+            className="flex items-center gap-1.5 rounded-lg border border-[var(--border)] px-4 py-3 text-sm font-medium transition-colors hover:bg-[var(--muted)]"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Back to Topics
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={onNext}
+          className="flex-1 rounded-lg bg-[var(--primary)] px-6 py-3 text-sm font-medium text-[var(--primary-foreground)] transition-opacity hover:opacity-90"
+        >
+          Continue to Publish
+        </button>
+      </div>
     </div>
   );
 }

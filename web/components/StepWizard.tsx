@@ -12,9 +12,10 @@ interface StepWizardProps {
   steps: Step[];
   currentStep: number;
   loadingMessage?: string;
+  onStepClick?: (step: number) => void;
 }
 
-export function StepWizard({ steps, currentStep, loadingMessage }: StepWizardProps) {
+export function StepWizard({ steps, currentStep, loadingMessage, onStepClick }: StepWizardProps) {
   return (
     <nav className="mb-8">
       <ol className="flex items-center gap-2">
@@ -32,33 +33,48 @@ export function StepWizard({ steps, currentStep, loadingMessage }: StepWizardPro
                   )}
                 />
               )}
-              <div className="flex items-center gap-2">
-                <div
-                  className={cn(
-                    "flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium transition-colors",
-                    isCompleted && "bg-[var(--success)] text-white",
-                    isCurrent && "bg-[var(--primary)] text-[var(--primary-foreground)]",
-                    !isCompleted && !isCurrent && "bg-[var(--muted)] text-[var(--muted-foreground)]"
-                  )}
+              {isCompleted && onStepClick ? (
+                <button
+                  type="button"
+                  onClick={() => onStepClick(i)}
+                  className="flex items-center gap-2 cursor-pointer group"
                 >
-                  {isCompleted ? (
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium transition-colors bg-[var(--success)] text-white group-hover:opacity-80">
                     <Check className="h-4 w-4" />
-                  ) : isCurrent ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    i + 1
-                  )}
+                  </div>
+                  <span className="hidden text-sm sm:inline group-hover:underline">
+                    {step.label}
+                  </span>
+                </button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <div
+                    className={cn(
+                      "flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium transition-colors",
+                      isCompleted && "bg-[var(--success)] text-white",
+                      isCurrent && "bg-[var(--primary)] text-[var(--primary-foreground)]",
+                      !isCompleted && !isCurrent && "bg-[var(--muted)] text-[var(--muted-foreground)]"
+                    )}
+                  >
+                    {isCompleted ? (
+                      <Check className="h-4 w-4" />
+                    ) : isCurrent ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      i + 1
+                    )}
+                  </div>
+                  <span
+                    className={cn(
+                      "hidden text-sm sm:inline",
+                      isCurrent && "font-medium",
+                      !isCompleted && !isCurrent && "text-[var(--muted-foreground)]"
+                    )}
+                  >
+                    {step.label}
+                  </span>
                 </div>
-                <span
-                  className={cn(
-                    "hidden text-sm sm:inline",
-                    isCurrent && "font-medium",
-                    !isCompleted && !isCurrent && "text-[var(--muted-foreground)]"
-                  )}
-                >
-                  {step.label}
-                </span>
-              </div>
+              )}
             </li>
           );
         })}
